@@ -10,7 +10,7 @@ from .model import *
 class ProtobufLexer(object):
     keywords = ('double', 'float', 'int32', 'int64', 'uint32', 'uint64', 'sint32', 'sint64',
                 'fixed32', 'fixed64', 'sfixed32', 'sfixed64', 'bool', 'string', 'bytes',
-                'message', 'required', 'optional', 'repeated', 'enum', 'extensions', 'max', 'extends', 'extend',
+                'message', 'required', 'optional', 'repeated', 'singular', 'enum', 'extensions', 'max', 'extends', 'extend',
                 'to', 'package', 'service', 'rpc', 'returns', 'true', 'false', 'option', 'import')
 
     tokens = [
@@ -121,7 +121,8 @@ class ProtobufParser(object):
     def p_field_modifier(self,p):
         '''field_modifier : REQUIRED
                           | OPTIONAL
-                          | REPEATED'''
+                          | REPEATED
+                          | SINGULAR'''
         p[0] = LU.i(p,1)
 
     def p_primitive_type(self, p):
@@ -209,8 +210,12 @@ class ProtobufParser(object):
 
     # Root of the field declaration.
     def p_field_definition(self, p):
-        '''field_definition : field_modifier field_type field_name EQ field_id field_directive_times SEMI'''
-        p[0] = FieldDefinition(LU.i(p,1), LU.i(p,2), LU.i(p, 3), LU.i(p,5), LU.i(p,6))
+        '''field_definition : field_modifier field_type field_name EQ field_id field_directive_times SEMI
+                            | field_type field_name EQ field_id field_directive_times SEMI'''
+        if len(p) == 8:
+            p[0] = FieldDefinition(LU.i(p,1), LU.i(p,2), LU.i(p, 3), LU.i(p,5), LU.i(p,6))
+        else:
+            p[0] = FieldDefinition(None, LU.i(p,1), LU.i(p, 2), LU.i(p,4), LU.i(p,5))
         self.lh.set_parse_object(p[0], p)
 
     # Root of the enum field declaration.

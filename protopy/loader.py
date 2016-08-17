@@ -53,12 +53,13 @@ class Loader(object):
         print('MessageDefine', m_name)
         # print(define, attrs)
         for field in define.body:
-            modifier = field.field_modifier.pval
+            modifier = field.field_modifier and field.field_modifier.pval
             ftype = field.ftype.name.pval
             name = field.name.value.pval
             fid = field.fieldId.pval
             print(modifier, ftype, name)
-            required = True if modifier != 'optional' else False
+            required = True if modifier not in ('optional', 'singular') else False
+            repeated = modifier == 'repeated'
             field_obj = self.type_transform[ftype](required=required)
             attrs[name] = field_obj
         cls = type(m_name, (Entity,), attrs)

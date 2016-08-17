@@ -11,11 +11,12 @@ message Person {
   optional string email = 3;
 }
 message HelloRequest {
-  required string greeting = 1;
+  string greeting = 1;
 }
 
 message HelloResponse {
-  optional string reply = 1;
+  string reply = 1;
+  singular string server = 2;
 }
 
 service HelloService {
@@ -27,7 +28,7 @@ hello = load(define, 'hello')
 
 @grpc(app.route, hello.HelloService.SayHello)
 def say_hello(param):
-    return hello.HelloResponse(reply="Hello {}".format(param.greeting))
+    return hello.HelloResponse(reply="Hello {}".format(param.greeting), server='grpc')
 
 if __name__ == "__main__":
     app.run(debug=True)
