@@ -1,9 +1,10 @@
 import types
-from .plyproto import parser as plyproto
-from .entity import Entity, IntegerField, StringField, BooleanField, ListField, EnumField
-from .entity import Service, Method
 from enum import Enum
 from functools import partial
+
+from .entity import (BooleanField, Entity, EnumField, IntegerField, ListField,
+                     Method, Service, StringField)
+from .plyproto import parser as plyproto
 
 
 class TypeNotFound(Exception):
