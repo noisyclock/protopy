@@ -17,6 +17,7 @@ message HelloRequest {
 message HelloResponse {
   string reply = 1;
   singular string server = 2;
+  repeated string test = 3;
 }
 
 service HelloService {
@@ -28,7 +29,7 @@ hello = load(define, 'hello')
 
 @grpc(app.route, hello.HelloService.SayHello)
 def say_hello(param):
-    return hello.HelloResponse(reply="Hello {}".format(param.greeting), server='grpc')
+    return hello.HelloResponse(reply="Hello {}".format(param.greeting), server='grpc', test=['a', 'b', 'c'])
 
 if __name__ == "__main__":
     app.run(debug=True)

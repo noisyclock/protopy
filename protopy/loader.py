@@ -1,6 +1,6 @@
 import types
 from .plyproto import parser as plyproto
-from .entity import Entity, IntegerField, StringField, BooleanField
+from .entity import Entity, IntegerField, StringField, BooleanField, ListField
 from .entity import Service, Method
 
 class Loader(object):
@@ -61,6 +61,8 @@ class Loader(object):
             required = True if modifier not in ('optional', 'singular') else False
             repeated = modifier == 'repeated'
             field_obj = self.type_transform[ftype](required=required)
+            if repeated:
+                field_obj = ListField(field_obj)
             attrs[name] = field_obj
         cls = type(m_name, (Entity,), attrs)
         print('MessageDefine', m_name, cls)
