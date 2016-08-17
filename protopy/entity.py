@@ -44,6 +44,15 @@ class ListField(Field):
     def validate(self, v):
         return all(self.field.validate(e) for e in v)
 
+class EnumField(Field):
+    def __init__(self, enum_cls, required=True):
+        self.enum = enum_cls
+        self.required = required
+
+    def validate(self, v):
+        return v in self.enum.__members__
+
+
 class FieldMissing(Exception):
     def __init__(self, name):
         Exception.__init__(self, 'required Field `{}` not privode'.format(name))

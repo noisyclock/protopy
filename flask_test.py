@@ -18,6 +18,11 @@ message HelloResponse {
   string reply = 1;
   singular string server = 2;
   repeated string test = 3;
+  enum Beauty {
+      GAOYUANYUAN = 1;
+      LINZHILING = 2;
+  }
+  singular Beauty beauty = 4;
 }
 
 service HelloService {
@@ -29,7 +34,7 @@ hello = load(define, 'hello')
 
 @grpc(app.route, hello.HelloService.SayHello)
 def say_hello(param):
-    return hello.HelloResponse(reply="Hello {}".format(param.greeting), server='grpc', test=['a', 'b', 'c'])
+    return hello.HelloResponse(reply="Hello {}".format(param.greeting), server='grpc', test=['a', 'b', 'c'], beauty='GAOYUANYUAN')
 
 if __name__ == "__main__":
     app.run(debug=True)

@@ -1,7 +1,15 @@
 import types
 from .plyproto import parser as plyproto
-from .entity import Entity, IntegerField, StringField, BooleanField, ListField
+from .entity import Entity, IntegerField, StringField, BooleanField, ListField, EnumField
 from .entity import Service, Method
+from enum import Enum
+from functools import partial
+
+
+class TypeNotFound(Exception):
+    def __init__(self, name):
+        Exception.__init__(self, 'Type<{}> not found'.format(name))
+
 
 class Loader(object):
     type_transform = {
@@ -53,14 +61,32 @@ class Loader(object):
         print('MessageDefine', m_name)
         # print(define, attrs)
         for field in define.body:
-            modifier = field.field_modifier and field.field_modifier.pval
-            ftype = field.ftype.name.pval
+            if type(field) is plyproto.EnumDefinition:
+                e_name, cls = self._on_elem(field)
+                attrs[e_name] = cls
+                continue
+
             name = field.name.value.pval
-            fid = field.fieldId.pval
-            print(modifier, ftype, name)
+            modifier = field.field_modifier and field.field_modifier.pval
+            field_type = None
+            if type(field.ftype) is plyproto.DotName:
+                ftype = field.ftype.value
+                if ftype in attrs and issubclass(attrs[ftype], Enum):
+                    field_type = partial(EnumField, attrs[ftype])
+                elif issubclass(getattr(self.module, ftype, None), Enum):
+                    field_type = partial(EnumField, getattr(self.module, ftype))
+                else:
+                    raise TypeNotFound(name)
+            else:
+                ftype = field.ftype.name.pval
+                fid = field.fieldId.pval
+                print(modifier, ftype, name)
+                field_type = self.type_transform[ftype] 
+
             required = True if modifier not in ('optional', 'singular') else False
             repeated = modifier == 'repeated'
-            field_obj = self.type_transform[ftype](required=required)
+            field_obj = field_type(required=required)
+
             if repeated:
                 field_obj = ListField(field_obj)
             attrs[name] = field_obj
@@ -78,7 +104,6 @@ class Loader(object):
         return name, Method(name, param, ret)
 
     def _on_ServiceDefinition(self, define):
-        # TODO: make service
         name = define.name.value.pval
         service = Service(name)
         for _def in define.body:
@@ -87,6 +112,17 @@ class Loader(object):
             setattr(service, _name, prop)
         return name, service
 
+    def _on_EnumDefinition(self, define):
+        name = define.name.value.pval
+        attrs = {}
+        for _def in define.body:
+            _name = _def.name.value.pval
+            _id = _def.fieldId.pval
+            attrs[_name] = _id
+
+        cls = Enum(name, attrs)
+        print(name, cls)
+        return name, cls 
 
 if __name__ == '__main__':
     define = '''
@@ -98,7 +134,10 @@ message Person {
 message HelloRequest {
   optional string greeting = 1;
 }
-
+enum Beauty {
+    GAOYUANYUAN = 1;
+    LINZHILING = 2;
+}
 message HelloResponse {
   optional string reply = 1;
 }
