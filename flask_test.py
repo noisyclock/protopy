@@ -13,7 +13,10 @@ message Person {
 message HelloRequest {
   string greeting = 1;
 }
-
+enum Language{
+    Python = 1;
+    Java = 2;
+}
 message HelloResponse {
   string reply = 1;
   singular string server = 2;
@@ -23,6 +26,7 @@ message HelloResponse {
       LINZHILING = 2;
   }
   singular Beauty beauty = 4;
+  Language lang = 5;
 }
 
 service HelloService {
@@ -34,7 +38,10 @@ hello = load(define, 'hello')
 
 @grpc(app.route, hello.HelloService.SayHello)
 def say_hello(param):
-    return hello.HelloResponse(reply="Hello {}".format(param.greeting), server='grpc', test=['a', 'b', 'c'], beauty='GAOYUANYUAN')
+    return hello.HelloResponse(reply="Hello {}".format(param.greeting), 
+                               server='grpc', test=['a', 'b', 'c'], 
+                               beauty='LINZHILING',
+                               lang='Python')
 
 if __name__ == "__main__":
     app.run(debug=True)
